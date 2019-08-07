@@ -1,0 +1,260 @@
+# Java Maven CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-java/ for more details
+#
+
+defaults: &defaults
+  docker:
+    # specify the version you desire here
+    - image: circleci/openjdk:8u171-jdk-node-browsers
+
+  working_directory: ~/repo
+  environment:
+    MAVEN_OPTS: -Xmx3200m
+
+version: 2
+jobs:
+
+  build:
+    machine: true
+    steps:
+      - checkout
+
+      - run:
+          name: Build
+          command: |
+            cd monolithstarter-svc
+            mvn -B -s ../.circleci/settings.xml clean install -DskipTests
+
+
+  java_unit_tests:
+    machine: true
+    steps:
+      - checkout
+
+      - run: cd "monolithstarter-svc" && mvn -s ../.circleci/settings.xml dependency:go-offline
+
+      - run:
+          name: Run unit tests
+          command: cd "monolithstarter-svc" && mvn -s ../.circleci/settings.xml clean test
+
+      - run:
+          name: Report to sonar
+          command: |
+            if [[ -n $CIRCLE_PULL_REQUEST ]]; then
+              cd "monolithstarter-svc" && mvn sonar:sonar \
+              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
+              -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
+              -Dsonar.pullrequest.base=master
+            else
+              cd "monolithstarter-svc" && mvn sonar:sonar \
+              -Dsonar.branch.name=${CIRCLE_BRANCH} \
+              -Dsonar.login=${SONAR_LOGIN}
+            fi
+
+  js_unit_tests:
+    <<: *defaults
+
+    steps:
+      - checkout
+      - run:
+          name: Run Javascript Unit Tests
+          command: |
+            cd monolithstarter-static
+            yarn --ignore-engines
+            yarn run test --maxWorkers=2
+
+      - run:
+          name: Report to sonar
+          command: |
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.0.0.1744-linux.zip
+            unzip sonar-scanner-cli-4.0.0.1744-linux.zip
+            if [[ -n $CIRCLE_PULL_REQUEST ]]; then
+              eval ./sonar-scanner-4.0.0.1744-linux/bin/sonar-scanner \
+              -Dsonar.login=${SONAR_LOGIN} \
+              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
+              -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
+              -Dsonar.pullrequest.base=master
+            else
+              eval ./sonar-scanner-4.0.0.1744-linux/bin/sonar-scanner \
+              -Dsonar.branch.name=${CIRCLE_BRANCH} \
+              -Dsonar.login=${SONAR_LOGIN}
+            fi
+
+  cypress_tests:
+    <<: *defaults
+
+    steps:
+      - checkout
+      - run:
+          name: Run backend
+          command: |
+            cd monolithstarter-svc
+            mvn -B -s ../.circleci/settings.xml clean install -DskipTests
+
+      - run:
+          name: Run cypress tests
+          command: |
+            yarn --ignore-engines
+            yarn start-and-test-ci
+
+  publish_artifacts:
+    <<: *defaults
+
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+         name: Install AWS and EB CLI
+         command: |
+           sudo apt-get -y -qq update
+           sudo apt-get install python-pip python-dev build-essential jq
+           sudo pip install --upgrade setuptools
+           sudo pip install awscli
+      - run:
+          name: Create And Deploy New Release
+          command: |
+            cd monolithstarter-svc
+            # get the current and new version numbers
+            OLD_VERSION=$(mvn -s ../.circleci/settings.xml -q \
+              -Dexec.executable="echo" -Dexec.args='${project.version}' \
+              --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
+            NEW_VERSION="${OLD_VERSION/-SNAPSHOT/}"
+            echo "Releasing $OLD_VERSION as $NEW_VERSION"
+
+            # confirm the dependencies use release versions
+            mvn -B -s ../.circleci/settings.xml versions:use-releases
+
+            # write release version to POM
+            mvn -B -s ../.circleci/settings.xml versions:set -DnewVersion="$NEW_VERSION"
+            mvn -B deploy -DskipTests
+
+            # set up git user
+            git config user.name "Validity-CI User"
+            git config user.email "validity-ci@validity.com"
+
+            # tag the release
+            git tag "$NEW_VERSION"
+            git push origin master --tags
+
+            # increment patch version number
+            MAJOR_VERSION=$(echo "$NEW_VERSION" | cut -d '.' -f 1)
+            MINOR_VERSION=$(echo "$NEW_VERSION" | cut -d '.' -f 2)
+            PATCH_VERSION=$(echo "$NEW_VERSION" | cut -d '.' -f 3)
+            NEW_PATCH=$(($PATCH_VERSION + 1))
+            POM_VERSION="$MAJOR_VERSION.$MINOR_VERSION.$NEW_PATCH-SNAPSHOT"
+            DEV_VERSION="$MAJOR_VERSION.$MINOR_VERSION.$NEW_PATCH"
+
+            $(aws ecr get-login --no-include-email --region us-east-1)
+
+            # FIXME: Add URL to ECR image
+            DOCKER_IMAGE=""
+            DOCKER_IMAGE_CURRENT="$DOCKER_IMAGE:$NEW_VERSION"
+            DOCKER_IMAGE_NEXT="$DOCKER_IMAGE:$DEV_VERSION"
+            DOCKER_IMAGE_LATEST="$DOCKER_IMAGE:latest"
+
+            docker build -t $DOCKER_IMAGE_CURRENT .
+            docker tag $DOCKER_IMAGE_CURRENT $DOCKER_IMAGE_LATEST
+            docker push $DOCKER_IMAGE_CURRENT
+            docker push $DOCKER_IMAGE_LATEST
+            cd ..
+
+            # Persist Dockerrun.aws.json to the workspace
+            mkdir -p artifact
+            cp Dockerrun.aws.json artifact/
+            cp -r .elasticbeanstalk artifact/
+
+            # release to my branch
+            cd monolithstarter-svc
+            mvn -B -s ../.circleci/settings.xml versions:set -DnewVersion="$POM_VERSION"
+            cd ..
+            jq --arg DOCKER_IMAGE "$DOCKER_IMAGE_NEXT" '.Image.Name = $DOCKER_IMAGE' Dockerrun.aws.json > temp.json
+            mv temp.json Dockerrun.aws.json
+
+            git add monolithstarter-svc/pom.xml
+            git add Dockerrun.aws.json
+            git commit -m "ready for development = $DEV_VERSION [ci skip]"
+            git push origin master
+
+      - persist_to_workspace:
+          root: artifact
+          paths:
+            - Dockerrun.aws.json
+            - .elasticbeanstalk
+
+  deploy_to_stage:
+    <<: *defaults
+
+    steps:
+      - attach_workspace:
+          at: ~/repo/artifact
+      - run:
+          name: Install EB CLI
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get install python-pip python-dev build-essential
+            sudo pip install --upgrade setuptools
+            sudo pip install awsebcli --upgrade
+      - run:
+          name: Deploy to Stage
+          command: |
+            cd ~/repo/artifact
+            DOCKER_IMAGE=$(cat Dockerrun.aws.json | jq -r .Image.Name)
+            echo "Deploying $DOCKER_IMAGE to monolithstarter-stage"
+            eb deploy monolithstarter-stage --timeout 30
+
+  deploy_to_production:
+    <<: *defaults
+
+    steps:
+      - attach_workspace:
+          at: ~/repo/artifact
+      - run:
+          name: Install EB CLI
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get install python-pip python-dev build-essential
+            sudo pip install --upgrade setuptools
+            sudo pip install awsebcli --upgrade
+      - run:
+          name: Deploy to Production
+          command: |
+            cd ~/repo/artifact
+            DOCKER_IMAGE=$(cat Dockerrun.aws.json | jq -r .Image.Name)
+            echo "Deploying $DOCKER_IMAGE to monolithstarter-prod"
+            eb deploy monolithstarter-prod --timeout 30
+
+workflows:
+  version: 2
+  monolithstarter_workflow:
+    jobs:
+      - build
+      - java_unit_tests:
+          requires:
+            - build
+      - js_unit_tests:
+          requires:
+            - build
+      - cypress_tests:
+          requires:
+            - build
+      - publish_artifacts:
+          requires:
+            - build
+            - java_unit_tests
+            - js_unit_tests
+            - cypress_tests
+          filters:
+            branches:
+              only: master
+      - deploy_to_stage:
+          requires:
+            - publish_artifacts
+      - approve_production_promotion:
+          type: approval
+          requires:
+            - deploy_to_stage
+      - deploy_to_production:
+          requires:
+            - approve_production_promotion

@@ -1,0 +1,13 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "",  // FIXME: Add URL to ECR image
+    "Update": "true"
+  },
+  "Volumes": [],
+  "Ports": [
+    {
+      "ContainerPort": "8080"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@coreui/coreui-free-react-admin-template",
+  "version": "2.0.6",
+  "description": "CoreUI React Open Source Bootstrap 4 Admin Template",
+  "author": "Łukasz Holeczek",
+  "homepage": "https://coreui.io",
+  "copyright": "Copyright 2018 creativeLabs Łukasz Holeczek",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:coreui/coreui-free-react-admin-template.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "cypress": "^3.4.0",
+    "start-server-and-test": "^1.9.1"
+  },
+  "scripts": {
+    "build-css": "node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss",
+    "watch-css": "npm run build-css && node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss --watch --recursive",
+    "start-js": "react-scripts start",
+    "start": "cd monolithstarter-svc && ./mvnw",
+    "build-js": "react-scripts build",
+    "build": "npm-run-all build-css build-js",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "cypress:open": "cypress open",
+    "cy:run-ci": "cypress run --config video=false,numTestsKeptInMemory=0,restartBrowserBetweenSpecFiles=true",
+    "start-and-test-ci": "start-server-and-test start http://localhost:8080 cy:run-ci"
+  },
+  "bugs": {
+    "url": "https://github.com/coreui/coreui-free-react-admin-template/issues"
+  }
+}
