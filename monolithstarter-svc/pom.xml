@@ -305,6 +305,11 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+        <dependency>
+            <groupId>com.rapid7</groupId>
+            <artifactId>r7insight_java</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 
     <build>
