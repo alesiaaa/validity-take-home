@@ -6,7 +6,7 @@
 /src/test/javascript/PhantomJS*/
 /dist/
 /src/
-/monolithstarter-static/build/
+/src/main/resources/templates/main.html
 
 
 ######################
