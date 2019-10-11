@@ -7,10 +7,10 @@ import HomePage from "./pages/HomePage";
 class App extends Component {
   render() {
     return (
-        <Switch>
-          <Route key="home" path="/" exact={true} component={HomePage} />
-          <Route key="hello" path="/hello" exact={true} component={HelloPage} />
-        </Switch>
+      <Switch>
+        <Route key="home" path="/" exact={true} component={HomePage} />
+        <Route key="hello" path="/hello" exact={true} component={HelloPage} />
+      </Switch>
     );
   }
 }
