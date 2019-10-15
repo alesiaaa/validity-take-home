@@ -1,6 +1,6 @@
 {
   "name": "@validityhq/MonolithStarter",
-  "version": "0.0.7",
+  "version": "0.0.1",
   "description": "A template of the validity starter app!",
   "author": "Validity",
   "license": "UNLICENSED",
@@ -20,7 +20,6 @@
     "build": "node buildscripts/build-server.js",
     "build-css": "node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss --watch --recursive",
-    "start-js": "react-scripts start",
     "start": "cd monolithstarter-svc && ./mvnw",
     "build": "npm-run-all build-css build-js",
     "cypress:open": "cypress open",

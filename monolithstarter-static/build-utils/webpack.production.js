@@ -39,7 +39,7 @@ const plugins = [
   new HtmlWebpackPlugin({
     inject: true,
     template: `${PATHS.public}/index.html`,
-    filename: 'index.html',
+    filename: htmlFile,
     minify: {
       removeComments: true,
       collapseWhitespace: true,
