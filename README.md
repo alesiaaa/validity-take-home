@@ -47,10 +47,65 @@ The build artifacts will be stored in the `build/` directory
 
 ## Build / Deployment
 
-### Local
-The Maven build process (`./mvnw clean install`) makes use of `frontend-maven-plugin` and `maven-resources-plugin` to automatically run the front-end build and copy the output to `monolithstarter-svc/target/public` to be packaged with the back-end so the entire application can be deployed as a single JAR.
+### Using the right version of node.js
 
-The front-end can be built separately by running `yarn run build` in the `monolithstarter-static` directory.
+The repo is setup to run a specific version of node.js.  This version is managed in the `.nvmrc` file in the root directory.
+
+In order to avoid errors related to node engine mismatches, make sure to run `nvm use` upon entering the root directory in each new terminal session. It will automatically download and set the active version to the correct one.
+
+Pro-tip: If you're using Zsh as your bash client, there is a plugin for automatically switching node versions when entering a new directory (automatically triggers `nvm use` and  loads the version based on the directory’s `.nvmrc` config) [nvm-auto](https://github.com/dijitalmunky/nvm-auto)
+
+Note: WINDOWS only - `.nvmrc` does not work on Windows, so `nvm use` in the root directory will not work as above. You must manually install the node.js version that needs to be used using `nvm install [version]` and then using `nvm use [version]` For more information, see this issue, which indicates there are no plans to implement this feature unfortunately (https://github.com/coreybutler/nvm-windows/issues/128)
+
+### Local
+
+For local development you want both the backend and frontend running for maximum efficiency :)
+
+### To build and run the backend:
+
+```bash
+# Move to the backend directory
+cd monolithstarter-svc
+
+# Start the application in dev mode
+./mvnw
+
+# (optionally) you can pass a profile name to run with a specific profile
+./mvnw spring-boot:run -Dspring-boot.run.profiles=stage
+```
+
+You will now have a host running at [localhost:8080](http://localhost:8080/)
+
+### To build and run the front-end:
+
+```bash
+# Move to the right directory
+cd monolithstarter-static
+
+# Install dependencies
+yarn install
+
+# Start the application in dev mode
+yarn run start
+```
+You will now have your frontend running at [localhost:9000](http://localhost:9000/). Note that this won't work without the backend running!
+
+To build frontend for production with minification:
+
+```bash
+yarn run build
+```
+
+### Production Build
+
+```bash
+# Install dependencies
+yarn install
+
+# run build script
+yarn run build
+```
+
 
 ### Docker
 ```bash
