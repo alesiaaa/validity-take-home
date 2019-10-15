@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== "production") {
 const htmlFile = process.env.DEPLOY_MODE === "true" ? path.resolve(
   __dirname,
   "../../monolithstarter-svc/src/main/resources/templates/main.html"
-) : path.resolve(__dirname, "../build/index.html");
+) : path.resolve(__dirname, "../build/main.html");
 
 // remove . from version number
 const versionNumber = pjson.version

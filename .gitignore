@@ -7,6 +7,8 @@
 /dist/
 /src/
 /monolithstarter-static/build/
+/monolithstarter-svc/src/main/resources/templates/main.html
+/monolithstarter-svc/src/main/resources/public
 
 
 ######################
