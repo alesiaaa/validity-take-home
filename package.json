@@ -21,7 +21,6 @@
     "build-css": "node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./node_modules ./src/scss -o ./src/scss --watch --recursive",
     "start": "cd monolithstarter-svc && ./mvnw",
-    "build": "npm-run-all build-css build-js",
     "cypress:open": "cypress open",
     "cy:run-ci": "cypress run --config video=false,numTestsKeptInMemory=0,restartBrowserBetweenSpecFiles=true",
     "start-and-test-ci": "start-server-and-test start http://localhost:8080 cy:run-ci"
