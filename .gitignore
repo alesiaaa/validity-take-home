@@ -184,3 +184,8 @@ monolithstarter-static/coverage/
 
 # Terraform output reports
 terraform/reports/*
+
+######################
+# Maven Wrapper
+######################
+!monolithstarter-svc/.mvn/wrapper/maven-wrapper.jar
