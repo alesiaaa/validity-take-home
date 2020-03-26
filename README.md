@@ -17,7 +17,7 @@ For PC users: For all the `./mvnw` commands mentioned below use `mvnw` instead.
 cd monolithstarter-svc
 
 # Start the application in dev mode
-./mvnw
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 You will now have a host running at [localhost:8080](http://localhost:8080/)
@@ -68,10 +68,7 @@ For local development you want both the backend and frontend running for maximum
 cd monolithstarter-svc
 
 # Start the application in dev mode
-./mvnw
-
-# (optionally) you can pass a profile name to run with a specific profile
-./mvnw spring-boot:run -Dspring-boot.run.profiles=stage
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 You will now have a host running at [localhost:8080](http://localhost:8080/)
