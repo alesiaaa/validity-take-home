@@ -1,8 +1,6 @@
 package com.validity.monolithstarter;
 
-import com.validity.monolithstarter.config.ApplicationProperties;
 import com.validity.monolithstarter.config.DefaultProfileUtil;
-
 import io.github.jhipster.config.JHipsterConstants;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +10,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -21,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-@EnableConfigurationProperties({ApplicationProperties.class})
 public class MonolithStarterApp implements InitializingBean {
 
     private static final Logger log = LoggerFactory.getLogger(MonolithStarterApp.class);
