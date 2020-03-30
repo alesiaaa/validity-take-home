@@ -1,8 +1,25 @@
-# MonolithStarter
+# View Duplicate Rows in Advance.csv
+To run the back-end, please follow the "To run the back-end" instructions in the Development Setup, below.
 
-This project is intended to help developers quickly stand up a monolithic React/Spring Boot application. For the most part you can simply replace all instances of `monolithstarter` with appropriately-cased `yourprojectname` but make sure to do a Ctrl + F for `FIXME` to find places where more action is required.
+To view data duplicates in advanced.csv navigate to (once the back-end has successfully started):
+http://localhost:8080/api/duplicates
 
-This readme assumes that you have completed the [newhire checklist](https://github.com/validityhq/we_the_engineers/tree/master/newhire).
+
+## View Duplicate Rows in Normal.csv
+Navigate to FileService.java in com.validity.monolithstarter.service package and change 
+
+File file = resourceLoader.getResource("classpath:test-files/advanced.csv").getFile();
+
+to
+
+File file = resourceLoader.getResource("classpath:test-files/normal.csv").getFile();
+
+Restart the server and nagivate to http://localhost:8080/api/duplicates in your browser.
+
+
+## Questions
+For additional questions, please reach out to alesiarazumova@gmail.com.
+
 
 ## Development Setup
 
