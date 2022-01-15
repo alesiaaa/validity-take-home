@@ -10,7 +10,7 @@
     "url": "git@github.com:validityhq/MonolithStarter.git"
   },
   "dependencies": {
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.5"
   },
   "devDependencies": {
     "cypress": "^3.4.0",
